@@ -19,6 +19,9 @@ use App\Models\TicketBooking;
 use App\Models\Donation;
 use App\Models\MobileInternetBill;
 use App\Models\UtilityBill;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\CustomerNotification;
 
 
 class Controller extends BaseController
@@ -40,68 +43,92 @@ class Controller extends BaseController
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Generate a random verification code
-        $verificationCode = rand(100000, 999999);
-
-        // Save the verification code and expiration time in the session
-        $expirationTime = now()->addHour(); // Verification code will expire in 1 hour
-        Session::put('verification_code', $verificationCode);
-        Session::put('verification_code_expires_at', $expirationTime);
-
-        // Send the verification code to the user via email
-        Mail::to($user->email)->send(new emailMailable($verificationCode, $request->amount_requested));
+        Notification::send(($user), new CustomerNotification("Send Money", null, $request->input('amount_requested')));
 
         return response()->json(['message' => 'Verification code sent successfully'], 200);
     }
 
-
-    public function sendVerificationEmail(Request $request)
+    public function multiCollect(Request $request)
     {
-        $request->validate([
-            'receiver_email' => 'required|email',
-        ]);
+    $request->validate([
+        'Phone_Numbers' => 'required|array',
+        'amount_requested' => 'required|numeric',
+    ]);
 
-        // Generate a random verification code
-        $verificationCode = rand(100000, 999999);
+    $phoneNumbers = $request->Phone_Numbers;
+    $usersNotFound = [];
+    $usersNotified = [];
 
-        // Save the verification code and expiration time in the session
-        $expirationTime = now()->addHour(); // Verification code will expire in 1 hour
-        Session::put('verification_code', $verificationCode);
-        Session::put('verification_code_expires_at', $expirationTime);
+    foreach ($phoneNumbers as $phoneNumber) {
+        // Get the user by phone number
+        $user = User::where('phone_number', $phoneNumber)->first();
 
-        // Send the verification code to the user via email
-        Mail::to($request->receiver_email)->send(new emailMailable($verificationCode));
+        if (!$user) {
+            $usersNotFound[] = $phoneNumber;
+            continue;
+        }
 
-        return response()->json(['message' => 'Verification code sent successfully'], 200);
+        Notification::send($user, new CustomerNotification("Send Money", null, $request->input('amount_requested')));
+        $usersNotified[] = $user->phone_number;
     }
 
+    $responseMessage="all users requsted";
+    if (!empty($usersNotFound)) {
+        $responseMessage = '. Users not found for phone numbers: ' . implode(', ', $usersNotFound);
+    }
+
+    return response()->json(['message' => $responseMessage], 200);
+
+    }
+
+
+    
+    public function sendVerificationEmail()
+    {
+    // Generate a random verification code with 4 digits
+    $verificationCode = rand(1000,9999);
+
+    // Get the authenticated user
+    $user = auth()->user();
+
+    // Store the verification code in the cache for a certain duration
+    Cache::put('user:verification_code:'.$user->id, $verificationCode, now()->addMinutes(10));
+
+   // Send the verification code to the user via email
+    Mail::to('sheryshawky2001@gmail.com')->send(new emailMailable($verificationCode));
+
+    return response()->json(['message' => 'Verification code sent successfully'], 200);
+
+    } 
 
 
     public function verifyCode(Request $request)
     {
-    $request->validate([
-        'verification_code' => 'required|numeric',
-    ]);
+        $request->validate([
+            'verification_code' => 'required|numeric',
+        ]);
+    
+        // Get the authenticated user
+        $user = auth()->user();
+    
+        // Get the provided verification code from the request
+        $providedCode = $request->input('verification_code');
+        
+        // Retrieve the verification code from the cache
+        $storedCode = Cache::get('user:verification_code:'.$user->id);
+        
+        // Check if the provided code matches the stored code
+        if ($providedCode == $storedCode) {
 
-    // Get the verification code from the session
-    $storedCode = Session::get('verification_code');
+            Cache::forget('user:verification_code:'.$user->id);
 
-    // Get the provided verification code from the request
-    $providedCode = $request->input('verification_code');
-
-    // Check if the provided code matches the stored code
-    if ($providedCode == $storedCode) {
-        // Code is correct
-        // Clear the verification code from the session
-        Session::forget('verification_code');
-
-        return response()->json(['message' => 'Verification successful'], 200);
-    } else {
-        // Code is incorrect
-        return response()->json(['message' => 'Invalid verification code'], 400);
+            return response()->json(['message' => 'Verification successful'], 200);
+        } else {
+            // Code is incorrect
+            return response()->json(['message' => 'Invalid verification code'], 400);
+        }
     }
-
-    }
+    
 
 
     public function getUserHistory(Request $request)
@@ -134,11 +161,11 @@ class Controller extends BaseController
         );
 
         // Return JSON response containing all transactions
-        return response()->json($allTransactions);
+        return response()->json($allTransactions,200);
     }
     
 
- 
+
 
 public function showServices(Request $request)
 {
@@ -173,6 +200,34 @@ public function showServices(Request $request)
 
     return response()->json($services, 200);
 }
+
+
+public function getNotifications()
+{
+    // Get the authenticated user
+    $user = auth()->user();
+
+    // Fetch unread notifications for the user
+    $unreadNotifications = $user->unreadNotifications;
+
+    // Get the count of unread notifications
+    $unreadCount = $unreadNotifications->count();
+
+    // Prepare the data to be returned
+    $data = [
+        'unread_notifications' => $unreadNotifications,
+        'unread_count' => $unreadCount,
+    ];
+
+    // Mark all unread notifications as read
+    $user->unreadNotifications->markAsRead();
+
+    // Return JSON response with all notifications and their counts
+    return response()->json($data,200);
+}
+
+
+
 
 
 }

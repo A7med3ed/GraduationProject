@@ -13,16 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('utility_bills', function (Blueprint $table) {
-            $table->string('Service_id')->primary();
+        Schema::create('mobile_recharges', function (Blueprint $table) {
+            $table->id('Service_id');
             $table->string('ServiceProviderID');
-            $table->foreign('ServiceProviderID')->references('ServiceProviderID')->on('service_providers')->onDelete('cascade');
+            $table->foreign('ServiceProviderID')->references('ServiceProviderID')->on('service_providers')->onDelete('cascade'); 
             $table->string('Support_Contact_Number');
+            $table->decimal('Min_Recharge', 8, 2);
+            $table->decimal('Max_Recharge', 8, 2);
+            $table->string('Mobile_code');
             $table->longtext('icon')->nullable(); 
-            $table->string('Type');
-            $table->string('Area');
-            $table->json('extra_fields')->nullable();
+            $table->json('extra_fields')->nullable(); 
             $table->timestamps();
+
+        
         });
     }
 
@@ -33,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('utility_bill');
+        Schema::dropIfExists('mobile_recharges');
     }
 };

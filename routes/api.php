@@ -20,6 +20,8 @@ use App\Http\Controllers\UtilityBillController;
 use App\Http\Controllers\UtilityBillCustomerDataController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProviderWalletController;
+use App\Http\Controllers\MobileRechargeController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,8 +39,8 @@ use App\Http\Controllers\ProviderWalletController;
                                                                                                         //
     //////User Sign Up And In APIs///////                                                               //
     Route::get('/users', [UserController::class, 'index']);                                             //
-    Route::get('/SignIn', [UserController::class, 'show']);                                             //
-    Route::get('/SignUp', [UserController::class, 'store']);                                            //
+    Route::post('/SignIn', [UserController::class, 'show']);                                             //
+    Route::post('/SignUp', [UserController::class, 'store']);                                            //
                                                                                                         //
     //////Provider Sign Up And In APIs///////                                                           //
     Route::post('/service-providers/SignUp', [ServiceProviderController::class, 'store']);              //
@@ -51,8 +53,9 @@ use App\Http\Controllers\ProviderWalletController;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 Route::middleware(['auth:sanctum'])->group(function () {                                            //
                                                                                                     //
-    //////User Sign Up And In APIs///////                                                           //
-    Route::put('/users/{id}', [UserController::class, 'update']);                                   //
+    //////User In APIs///////                                                                       //
+    Route::get('/user', [UserController::class, 'getuser']);                                        //
+    Route::put('/users', [UserController::class, 'update']);                                        //
     Route::delete('/users/{id}', [UserController::class, 'destroy']);                               //
                                                                                                     //
     //////Show and Update Wallet APIs//////                                                         //
@@ -60,24 +63,32 @@ Route::middleware(['auth:sanctum'])->group(function () {                        
     Route::post('/wallets/topup', [WalletController::class, 'topupWallet']);                        //
                                                                                                     /////////
     //////Provider Sign Up And In APIs///////                                                              //
+    Route::get('/provider', [ServiceProviderController::class, 'getprovider']);                            //                               //
     Route::put('/service-providers/{ServiceProviderID}', [ServiceProviderController::class, 'update']);    //
     Route::delete('/service-providers/{ServiceProviderID}', [ServiceProviderController::class, 'destroy']);//
                                                                                                            //
     //////Transaction APIs///////                                                                          //
+Route::get('/bank-transactions/favorate', [BankTransactionController::class, 'getFavorateTransactions']);  //  
+    Route::get('/bank-transactions/recent', [BankTransactionController::class, 'getRecentTransactions']);  //                                                                  //
     Route::post('/bank-transactions', [BankTransactionController::class, 'store']);                        //
     Route::get('/bank-transactions/show', [BankTransactionController::class, 'show']);                     //
                                                                                                            //
     Route::post('/provider-transactions', [ProviderTransactionController::class, 'store']);                //
     Route::get('/provider-transactions/show', [ProviderTransactionController::class, 'show']);             // 
                                                                                                            //
+Route::get('/card-transactions/favorate', [CardTransactionController::class, 'getFavorateTransactions']);  //
+    Route::get('/card-transactions/recent', [CardTransactionController::class, 'getRecentTransactions']);  //                                                                                                     //
     Route::post('/card-transactions', [CardTransactionController::class, 'store']);                        //
     Route::get('/card-transactions/show', [CardTransactionController::class, 'show']);                     //
                                                                                                            //
+    Route::get('/Resent-transfers', [UserTransactionController::class, 'getResentTransfers']);             //
+    Route::get('/favorate-transfers', [UserTransactionController::class, 'getFavorateTransfers']);         //
     Route::post('/user-transactions', [UserTransactionController::class, 'store']);                        //
     Route::get('/user-transactions/show', [UserTransactionController::class, 'show']);                     // 
                                                                                                            //
     ///////Send Mail and collect APIs///////                                                               // 
-    Route::post('/collect', [Controller::class, 'collect']);                                               // 
+    Route::post('/collect', [Controller::class, 'collect']);                                               //
+    Route::post('/multi-collect', [Controller::class, 'multiCollect']);                                    // 
     Route::post('/send-verification-email', [Controller::class, 'sendVerificationEmail']);                 // 
     Route::post('/verify-code', [Controller::class, 'verifyCode']);                                        //
     Route::post('/get-User-History', [Controller::class, 'getUserHistory']);                               //
@@ -88,22 +99,26 @@ Route::middleware(['auth:sanctum'])->group(function () {                        
     Route::put('/bank-accounts/{id}', [BankAccountController::class, 'update']);                           //
                                                                                                            //
     //////Add and update/delete Cards APIs///////                                                          //
+    Route::get('/card-details', [CardDetailsController::class, 'index']);                                 //
     Route::post('/card-details/Create', [CardDetailsController::class, 'store']);                          //
-    Route::get('/card-details/{user_id}', [CardDetailsController::class, 'showCards']);                    //
+    Route::get('/card-details/home', [CardDetailsController::class, 'showCards']);                    //
     Route::put('/card-details/{id}', [CardDetailsController::class, 'update']);                            //
     Route::delete('/card-details/{card_id}', [CardDetailsController::class, 'destroy']);                   //
                                                                                                            //
     //////Get all services API///////                                                                      //                                                      
     Route::post('/service-provider/services', [ServiceProviderController::class, 'showServices']);         //
                                                                                                            //    
+                                                                                                           //
+    ///////get notification for user/provider//////                                                        //
+    Route::get('/notifications', [Controller::class, 'getNotifications']);                                 //
                                                                                                            //    
     //////Service Provider Wallets APIs ///////                                                            //
-    Route::get('/provider-wallet', [ProviderWalletController::class, 'show']);                             //                                                                                                       //
+    Route::get('/provider-wallet', [ProviderWalletController::class, 'show']);                             //                                                                                                      
     Route::post('/transfer-to-bank', [ProviderWalletController::class, 'transferToBank']);                 //
                                                                                                            //
     //////Add and update/delete Ticket Service APIs///////                                                 //
     Route::get('/ticket-bookings', [TicketBookingController::class, 'index']);                             // 
-    Route::post('/ticket-bookings/Create', [TicketBookingController::class, 'store']);                     //
+    Route::post('/ticket-bookings', [TicketBookingController::class, 'store']);                     //
     Route::get('/ticket-bookings/{id}', [TicketBookingController::class, 'show']);                         //
     Route::put('/ticket-bookings/{id}', [TicketBookingController::class, 'update']);                       //
     Route::delete('/ticket-bookings/{id}', [TicketBookingController::class, 'destroy']);                   //
@@ -153,4 +168,11 @@ Route::middleware(['auth:sanctum'])->group(function () {                        
     Route::get('/utility-bill-customer-data/{id}', [UtilityBillCustomerDataController::class, 'show']);    //////
     Route::delete('/utility-bill-customer-data/{id}', [UtilityBillCustomerDataController::class, 'destroy']); //
 });                                                                                                          //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                                                            /////////////       
+    ///////// MobileRecharge Routes////////////                                                                       //
+    Route::get('/mobile-recharges', [MobileRechargeController::class, 'index']);                                     //
+    Route::post('/mobile-recharges', [MobileRechargeController::class, 'store']);                                   //  
+    Route::put('/mobile-recharges/{id}', [MobileRechargeController::class, 'update']);                             //
+    Route::get('/mobile-recharges/{id}', [MobileRechargeController::class, 'show']);                              //
+    Route::delete('/mobile-recharges/{id}', [MobileRechargeController::class, 'destroy']);                       //
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////

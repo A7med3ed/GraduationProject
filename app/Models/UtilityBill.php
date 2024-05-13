@@ -12,7 +12,7 @@ class UtilityBill extends Model
     
     protected $primaryKey = 'Service_id';
 
-    protected $fillable = [ 'Service_id','ServiceProviderID','Support_Contact_Number','Area','extra_fields'];
+    protected $fillable = [ 'Service_id','ServiceProviderID','Support_Contact_Number','Area','extra_fields','icon','Type'];
 
     protected $casts = [
         'extra_fields' => 'array',// Cast details as array

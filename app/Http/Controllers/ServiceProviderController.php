@@ -9,6 +9,10 @@ use App\Models\ProviderWallet;
 
 class ServiceProviderController extends Controller
 {
+    public function getprovider(){
+        $provider= ServiceProvider::where('ServiceProviderID',auth()->user()->ServiceProviderID)->first();
+        return response()->json($provider,200);
+    }
     // Retrieve a single service provider by Email and Password
     public function show(Request $request)
     {
@@ -33,18 +37,9 @@ class ServiceProviderController extends Controller
     // Store a new service provider
     public function store(Request $request)
     {
-        // Validate input
-        $request->validate([
-            'organizationName' => 'required|string|unique:service_providers',
-            'RepName' => 'required|string',
-            'RepEmail' => 'required|email|unique:service_providers',
-            'Password' => 'required|string|min:6|regex:/^(?=.*\d)(?=.*[A-Za-z])[A-Za-z\d]{6,}$/',
-            'RepPhoneNumber' => 'required|string|regex:/^[0-9]{12}$/',
-        ]);
-
         // Generate a random numeric for ID
         $serviceProviderID = ServiceProvider::max('ServiceProviderID') + 1;
-
+        
         // Create a new service provider
         $serviceProvider = ServiceProvider::create([
             'ServiceProviderID' => $serviceProviderID,
@@ -68,7 +63,7 @@ class ServiceProviderController extends Controller
         $token = $tokenResponse->getData()->Token;
 
         // Return the created user along with the token
-        return response()->json(['serviceProvider' => $serviceProvider, 'ProviderWallet' => $providerWallet, 'Token' => $token], 201);
+        return response()->json(['serviceProvider' => $serviceProvider, 'ProviderWallet' => $providerWallet, 'Token' => $token], 200);
     }
 
 
@@ -78,7 +73,7 @@ class ServiceProviderController extends Controller
         $request->validate([
             'RepName' => 'sometimes|required|string',
             'RepEmail' => 'sometimes|required|email|unique:service_providers,RepEmail,' . $ServiceProviderID,
-            'Password' => 'required|string|min:6|regex:/^(?=.*\d)(?=.*[A-Za-z])[A-Za-z\d]{6,}$/'
+            'Password' => 'required|string|min:6|regex:/^(?=.\d)(?=.[A-Za-z])[A-Za-z\d]{6,}$/'
         ]);
 
         $serviceProvider = ServiceProvider::findOrFail($ServiceProviderID);

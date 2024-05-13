@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('ServiceProviderID');
             $table->foreign('ServiceProviderID')->references('ServiceProviderID')->on('service_providers')->onDelete('cascade');
             $table->string('Support_Contact_Number');
+            $table->longtext('icon')->nullable(); 
+            $table->string('Type');
             $table->string('Mobile_code');
             $table->json('extra_fields')->nullable();
             $table->timestamps();

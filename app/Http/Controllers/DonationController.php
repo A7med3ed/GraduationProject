@@ -4,27 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\Donation;
 use Illuminate\Http\Request;
+use App\Models\ServiceProvider;
 
 class DonationController extends Controller
 {
     public function index()
     {
         $donations = Donation::all();
+        
+        foreach ($donations as $donation) {
+            $serviceProviderID = $donation->ServiceProviderID;
+            $organizationName = ServiceProvider::find($serviceProviderID)->organizationName;
+            $donation->setAttribute('organizationName', $organizationName);
+        }
+    
         return response()->json($donations, 200);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'ServiceProviderID' => 'required|exists:service_providers,ServiceProviderID',
-            'Support_Number' => 'required|string|regex:/^\d{12}$/',
-            'Donation_Purpose' => 'sometimes|string',
-            'Address' => 'sometimes|string',
-            'extra_fields' => 'sometimes|array',
+            'Support_Contact_Number' => 'required|string|regex:/^\d{3}$/',
+            'Donation_Purpose' => 'required|string',
+            'Address' => 'required|string',
+            'extra_fields' => 'nullable|array',
+        ]);
+        $Service_id = Donation::max('Service_id') + 1;
+        $donation = Donation::create([
+            'Service_id'=>$Service_id,
+            'ServiceProviderID'=>auth()->user()->ServiceProviderID,
+            'Support_Contact_Number' => $request->input('Support_Contact_Number'),
+            'Donation_Purpose' => $request->input('Donation_Purpose'),
+            'icon' => $request->input('icon'),
+            'Address' => $request->input('Address'),
+            'extra_fields' => $request->input('extra_fields'),
         ]);
 
-        $donation = Donation::create($request->all());
-        return response()->json($donation, 201);
+        return response()->json($donation, 200);
     }
 
     public function show($id)

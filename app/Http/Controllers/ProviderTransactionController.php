@@ -6,6 +6,8 @@ use App\Models\ProviderTransaction;
 use Illuminate\Http\Request;
 use App\Models\Wallet;
 use App\Models\ProviderWallet;
+use App\Notifications\CustomerNotification;
+use Illuminate\Support\Facades\Notification;
 
 class ProviderTransactionController extends Controller
 {
@@ -13,13 +15,12 @@ class ProviderTransactionController extends Controller
     public function store(Request $request)
 {
     $request->validate([
-        'sender_id' => 'required|string',
         'provider_receiver_id' => 'required|string',
         'amount' => 'required|numeric',
     ]);
 
     // Fetch the sender's wallet
-    $wallet = Wallet::where('user_id', $request->input('sender_id'))->first();
+    $wallet = Wallet::where('user_id',auth()->user()->user_id)->first();
 
     // Validate if there's enough balance to deduct
     if (!$wallet || $wallet->Balance < $request->input('amount')) {
@@ -42,13 +43,15 @@ class ProviderTransactionController extends Controller
     $transaction_id = ProviderTransaction::max('transaction_id') + 1;
     $transaction = ProviderTransaction::create([
         'transaction_id' => $transaction_id,
-        'sender_id' => $request->input('sender_id'),
+        'sender_id' => auth()->user()->user_id,
         'provider_receiver_id' => $request->input('provider_receiver_id'),
         'amount' => $request->input('amount'),
     ]);
 
     // Fetch the updated wallet
-    $updatedWallet = Wallet::where('user_id', $request->input('sender_id'))->first();
+    $updatedWallet = Wallet::where('user_id', auth()->user()->user_id)->first();
+
+    Notification::send((auth()->user()), new CustomerNotification("buy to Service",true,$request->input('amount')));
 
     return response()->json(['Transaction' => $transaction, 'Updated Wallet' => $updatedWallet], 201);
 }

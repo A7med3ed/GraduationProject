@@ -18,7 +18,6 @@ class TicketBookingController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'ServiceProviderID' => 'required|string',
             'EventName' => 'required|string|max:255',
             'EventDate' => 'required|date',
             'NumberofTickets' => 'required|integer',
@@ -26,10 +25,20 @@ class TicketBookingController extends Controller
             'Place' => 'required|string|max:255',
             'extra_fields' => 'nullable|array',
         ]);
-
-        // Create a new ticket booking
-        $ticketBooking = TicketBooking::create($request->all());
-        return response()->json($ticketBooking, 201);
+        $Service_id = TicketBooking::max('Service_id') + 1;
+        $ticketBooking = TicketBooking::create([
+            'Service_id'=>$Service_id,
+            'ServiceProviderID'=>auth()->user()->ServiceProviderID,
+            'Support_Contact_Number' => $request->input('Support_Contact_Number'),
+            'EventName' => $request->input('EventName'),
+            'EventDate' => $request->input('EventDate'),
+            'NumberofTickets' => $request->input('NumberofTickets'),
+            'Price' => $request->input('Price'),
+            'Place' => $request->input('Place'),
+            'icon' => $request->input('icon'),
+            'extra_fields' => $request->input('extra_fields'),
+        ]); 
+        return response()->json($ticketBooking, 200);
     }
 
     public function show($id)

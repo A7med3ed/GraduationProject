@@ -13,8 +13,15 @@ class UserController extends Controller
     {
         // Retrieve all users
         $users = User::all();
-        return response()->json($users);
+        return response()->json($users,200);
     }
+
+    public function getuser(){
+
+        $user= User::where('user_id',auth()->user()->user_id )->first();
+        return response()->json($user,200);
+    }
+    
 
     public function show(Request $request)
     {
@@ -80,10 +87,10 @@ class UserController extends Controller
     $token = $tokenResponse->getData()->Token;
 
     // Return the created user along with the token
-    return response()->json(['user' => $user, 'Token' => $token], 201);
+    return response()->json(['user' => $user, 'Token' => $token], 200);
     }
 
-    public function update(Request $request, $user_id)
+    public function update(Request $request)
     {
         
 
@@ -95,7 +102,7 @@ class UserController extends Controller
         ]);
     
         // Find the user
-        $user = User::where('user_id', $user_id)->firstOrFail();
+        $user = User::where('user_id', auth()->user()->user_id)->firstOrFail();
     
         // Update user fields if they are present in the request and not null
         if ($request->filled('Name')) {

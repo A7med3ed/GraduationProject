@@ -16,6 +16,18 @@ class CardDetailsController extends Controller
         $this->kmsController = $kmsController;
     }
 
+    public function index()
+    {
+        // Retrieve all cards
+        $cards =CardDetails::all();
+        $card_numbers=$cards->pluck('card_number');
+        $card_type=$cards->pluck('card_type');
+        foreach ($card_numbers as $card_numbers) {
+        $card_numbers=$this->kmsController->decryptData($card_numbers, auth()->user()->user_id);
+        }
+        return response()->json(['card numbers'=>$card_numbers,'card type'=>$card_type],200);
+    }
+
     public function store(Request $request)
     {
     // Validate the incoming request data
@@ -49,16 +61,18 @@ class CardDetailsController extends Controller
     }
 
 
-    public function showCards($user_id)
+    public function showCards()
     {
     // Retrieve card details for the given user ID
-    $cardDetails = CardDetails::where('user_id', $user_id)->get();
+    $cardDetails = CardDetails::where('user_id', auth()->user()->user_id)->get();
 
 
     // Decrypt card number and CVV for each card detail
     foreach ($cardDetails as $cardDetail) { 
-        $cardDetail->card_number = $this->kmsController->decryptData($cardDetail->card_number, $user_id);
+        $cardDetail->card_number = $this->kmsController->decryptData($cardDetail->card_number, auth()->user()->user_id);
     }
+
+    unset($cardDetails['cvv']);
 
     return response()->json($cardDetails, 200);
     }

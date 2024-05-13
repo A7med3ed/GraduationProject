@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('Service_id')->primary();
             $table->string('ServiceProviderID');
             $table->foreign('ServiceProviderID')->references('ServiceProviderID')->on('service_providers')->onDelete('cascade');
-            $table->string('Support_Number');
+            $table->string('Support_Contact_Number');
+            $table->longtext('icon')->nullable(); 
             $table->string('Donation_Purpose');
             $table->string('Address');
             $table->json('extra_fields')->nullable();

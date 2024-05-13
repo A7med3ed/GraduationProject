@@ -13,7 +13,7 @@ class Donation extends Model
     protected $primaryKey = 'Service_id';
     
     protected $fillable = [
-        'Service_id','ServiceProviderID', 'Support_Number', 'Donation_Purpose', 'Address','extra_fields'
+        'Service_id','ServiceProviderID', 'Support_Contact_Number', 'Donation_Purpose', 'Address','extra_fields','icon'
     ];
 
     protected $casts = [

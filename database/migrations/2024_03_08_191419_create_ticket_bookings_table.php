@@ -17,11 +17,13 @@ return new class extends Migration
             $table->string('Service_id')->primary();
             $table->string('ServiceProviderID');
             $table->foreign('ServiceProviderID')->references('ServiceProviderID')->on('service_providers')->onDelete('cascade');
+            $table->string('Support_Contact_Number');
             $table->string('EventName');
             $table->date('EventDate');
             $table->integer('NumberofTickets');
             $table->decimal('Price', 10, 2);
             $table->string('Place');
+            $table->longtext('icon')->nullable(); 
             $table->json('extra_fields')->nullable(); // Dynamic fields stored as JSON
             $table->timestamps();
         });

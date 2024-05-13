@@ -18,16 +18,16 @@ class BankAccountController extends Controller
     public function store(Request $request)
     {
         // Validate input
-        $request->validate([
-            'account_number' => 'required|string|unique:bank_accounts',
-            'account_holder_name' => 'required|string',
-            'bank_name' => 'required|string',
-            'account_type' => 'required|in:debit,credit',
-            'user_id' => 'required|string|exists:users,user_id',
-        ]);
+        //$request->validate([
+          //  'account_number' => 'required|string|unique:bank_accounts',
+            //'account_holder_name' => 'required|string',
+            //'bank_name' => 'required|string',
+           // 'account_type' => 'required|in:debit,credit',
+           // 'user_id' => 'required|string|exists:users,user_id',
+        //]);
 
         // Encrypt the account number
-        $encryptedAccountNumber = $this->kmsController->encryptData($request->input('account_number'), $request->input('user_id'));
+        $encryptedAccountNumber = $this->kmsController->encryptData($request->input('account_number'), auth()->user()->user_id);
 
         // Create a new bank account
         $bankAccount = BankAccount::create([
@@ -35,10 +35,10 @@ class BankAccountController extends Controller
             'account_holder_name' => $request->input('account_holder_name'),
             'bank_name' => $request->input('bank_name'),
             'account_type' => $request->input('account_type'),
-            'user_id' => $request->input('user_id'),
+            'user_id' => auth()->user()->user_id,
         ]);
 
-        return response()->json($bankAccount, 201);
+        return response()->json($bankAccount, 200);
     }
 
     public function show($id)

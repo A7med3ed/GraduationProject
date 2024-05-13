@@ -17,13 +17,18 @@ class DonationCustomerDataController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,user_id',
             'service_id' => 'required|exists:donations,Service_id',
             'Amount' => 'required|numeric',
             'extra_fields' => 'nullable|array',
         ]);
 
-        $donationCustomerData = Donation_CustomerData::create($request->all());
+        $donationCustomerData = Donation_CustomerData::create([
+            'user_id' => auth()->user()->user_id,
+            'service_id'=>$request->input('service_id'),
+            'Amount' => $request->input('Amount'),
+            'extra_fields' =>$request->input('extra_fields')
+]);
+
         return response()->json($donationCustomerData, 201);
     }
 

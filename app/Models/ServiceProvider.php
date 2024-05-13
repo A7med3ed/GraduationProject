@@ -37,5 +37,10 @@ class ServiceProvider extends Authenticatable
     {
         return $this->hasMany(ProviderWallet::class, 'ServiceProviderID');
     }
+
+    public function ProviderBankTransaction()
+    {
+        return $this->hasMany(ProviderBankTransaction::class, 'ServiceProviderID');
+    }
     
 }

@@ -12,7 +12,7 @@ class MobileInternetBill extends Model
     
     protected $primaryKey = 'Service_id';
     
-    protected $fillable = ['Service_id','ServiceProviderID', 'Support_Contact_Number','Mobile_code' , 'extra_fields'];
+    protected $fillable = ['Service_id','ServiceProviderID', 'Support_Contact_Number','Mobile_code' , 'extra_fields','icon','Type'];
 
     protected $casts = [
         'extra_fields' => 'array',// Cast details as array
